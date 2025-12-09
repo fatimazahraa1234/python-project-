@@ -179,3 +179,8 @@ class DataAnalysisProject :
         #apply function to each group using lambda function
         print("\nsum * mean : ",filtered_data.groupby("PaymentMethod")["TotalCharges"].apply(lambda x : x.sum() * x.mean()))
         print("\nsum + mean : ",filtered_data.groupby("PaymentMethod")["MonthlyCharges"].apply(lambda x : x.sum() + x.mean()))
+
+        #Sum and mean of monthly charges by internet service
+        print("\nSum and mean : ",filtered_data.groupby("InternetService")["MonthlyCharges"].agg(["sum","mean"]))
+        #Apply lambda function to this group
+        print("\nsum / mean : ",filtered_data.groupby("InternetService")["TotalCharges"].apply(lambda x : x.sum() / x.mean()))
