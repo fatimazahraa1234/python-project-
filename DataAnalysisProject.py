@@ -43,7 +43,7 @@ class DataAnalysisProject :
             print(f"Something went wrong while loading the file : {e} ")
 
     #------------------------------------------------
-    #2. Inspect DataSet
+    #2-Inspect DataSet
     #------------------------------------------------
     def inspect_data(self):
         """Inspect the data set
@@ -162,5 +162,20 @@ class DataAnalysisProject :
     #-------------------------------------------------------------------------------------------------------------------
     #5-Grouping and filtering data
     #-------------------------------------------------------------------------------------------------------------------
+    def group_and_filter_data(self):
+        """Group the dataset by tenure, monthly charges and total charges"""
+        #Filter data by total charges greater or equal to 1000
+        filtered_data = self.df[self.df["TotalCharges"] >= 1000] .sort_values(by=['MonthlyCharges'])
 
+        #Group total charges by payment method
+        #Apply multiple aggregation functions once on filtered dataset
+        #mean,sum,max,min,mean,median,std ...
+        print("\nGrouping total charges by payment method : ",filtered_data.groupby("PaymentMethod")["TotalCharges"].agg(["sum","mean","max","min","median","std","first","last"]))
 
+        #Group monthly charges by payment method
+        #Apply multiple aggregation functions once on filtered dataset
+        print("\nGrouping Monthly charges by payment method : ",filtered_data.groupby("PaymentMethod")["MonthlyCharges"].agg(["sum","mean","max","min","median","std","first","last"]))
+
+        #apply function to each group using lambda function
+        print("\nsum * mean : ",filtered_data.groupby("PaymentMethod")["TotalCharges"].apply(lambda x : x.sum() * x.mean()))
+        print("\nsum + mean : ",filtered_data.groupby("PaymentMethod")["MonthlyCharges"].apply(lambda x : x.sum() + x.mean()))
