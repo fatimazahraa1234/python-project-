@@ -163,24 +163,62 @@ class DataAnalysisProject :
     #5-Grouping and filtering data
     #-------------------------------------------------------------------------------------------------------------------
     def group_and_filter_data(self):
-        """Group the dataset by tenure, monthly charges and total charges"""
-        #Filter data by total charges greater or equal to 1000
-        filtered_data = self.df[self.df["TotalCharges"] >= 1000] .sort_values(by=['MonthlyCharges'])
+        """ Data Filtration """
 
-        #Group total charges by payment method
-        #Apply multiple aggregation functions once on filtered dataset
-        #mean,sum,max,min,mean,median,std ...
-        print("\nGrouping total charges by payment method : ",filtered_data.groupby("PaymentMethod")["TotalCharges"].agg(["sum","mean","max","min","median","std","first","last"]))
+        #Clients who quit (churn = yes )
+        df_quit = self.df[self.df["Churn"]=="Yes" ]
+        print("\nCustomers who quit :",df_quit)
 
-        #Group monthly charges by payment method
-        #Apply multiple aggregation functions once on filtered dataset
-        print("\nGrouping Monthly charges by payment method : ",filtered_data.groupby("PaymentMethod")["MonthlyCharges"].agg(["sum","mean","max","min","median","std","first","last"]))
+        #Loyal Customers  (tenure > 5years ) [Tenure = duration per month ]
+        df_long = self.df[self.df["Tenure"] >= 60]
+        print("\nCustomers who stay long :",df_long)
 
-        #apply function to each group using lambda function
-        print("\nsum * mean : ",filtered_data.groupby("PaymentMethod")["TotalCharges"].apply(lambda x : x.sum() * x.mean()))
-        print("\nsum + mean : ",filtered_data.groupby("PaymentMethod")["MonthlyCharges"].apply(lambda x : x.sum() + x.mean()))
+        #New customers (with less than 1 year )
+        df_less = self.df[self.df["Tenure"] <= 12 ]
+        print("\nCustomers who stay less than 12 months :",df_less)
 
-        #Sum and mean of monthly charges by internet service
-        print("\nSum and mean : ",filtered_data.groupby("InternetService")["MonthlyCharges"].agg(["sum","mean"]))
-        #Apply lambda function to this group
-        print("\nsum / mean : ",filtered_data.groupby("InternetService")["TotalCharges"].apply(lambda x : x.sum() / x.mean()))
+        #High revenue customers
+        df_high = self.df[self.df["MonthlyCharges"] >= 90]
+        print("\nCustomers with high revenue :",df_high)
+
+        #Customers with fiber-optic internet only
+        df_f_o=self.df[self.df["InternetService"]=="Fiber Optic" ]
+        print("\nCustomers who have fiber optic internet service :",df_f_o)
+
+        #High risk customers : month to month contract and high charges
+        """These customers with high monthly charges but just with monthly contact 
+        so they can leve anytime --> high churn rate --> more dissatisfaction """
+
+        df_risk=self.df[(self.df["Contract"] == "Month-to-month") & (self.df["MonthlyCharges"] >= 80)]
+        print("\nCustomers with high churn rate :",df_risk)
+
+        #Customers with high total charges
+        df_high_total = self.df[self.df["TotalCharges"] >= 3000 ]
+        print("\nCustomers with high total charges :",df_high_total)
+
+
+
+        """ Data Groupment """
+        #Global churn distribution (numbers of clients who quit and who stayed )
+        print("\nGlobal Churn : ",self.df.groupby(['Churn']).sum())
+
+        #Count churn rate by internet service (counts the number of non-null values in this group )
+        print("\nChurn rate by internet service : ",self.df.groupby("InternetService")["Churn"].count())
+
+        #Churn rate by gender
+        print("\nChurn rate by gender : ",self.df.groupby("Gender")["Churn"].count())
+
+        #Average monthly charges by churn
+        print("\nAverage monthly charges by churn : ",self.df.groupby("Churn")["MonthlyCharges"].mean())
+
+        #Average total charges by churn
+        print("\nAverage total charges by month :",self.df.groupby("Churn")["TotalCharges"].mean())
+
+        #Monthly charges by contract type
+        print("\nMonthly charges by contract type : ",self.df.groupby("Contract")["MonthlyCharges"].sum())
+
+        #Total charges by internet service
+        print("\nTotal charges by internet service : ",self.df.groupby("InternetService")["TotalCharges"].sum())
+
+        #Multiple service Usage based on churn
+        print("\nService usage : ",self.df.groupby("Churn")["PhoneService","OnlineBackup","TechSupport","StreamingTV","StreamingMovies"].mean())
