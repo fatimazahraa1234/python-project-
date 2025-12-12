@@ -146,7 +146,7 @@ class CustomerChurnAnalysis :
         #average tenure
         print("mean tenure : ",self.df['tenure'].mean())
         """
-        average 32 month
+        average 32 months
         """
         #sorting data in ascending order
         self.df.sort_values(by=['tenure'], inplace=True)
@@ -276,7 +276,7 @@ class CustomerChurnAnalysis :
         Yes    Yes                  850 churns
                No                   848
                No phone service     169
-        -->people still active have multiple lines 2117 subscribers have multiple lines 
+        -->people still active have multiple lines 2117 subscribers have multiple lines 2531 have one line
         """
 
         #counting number of customers with their internet service
@@ -291,9 +291,7 @@ class CustomerChurnAnalysis :
                No                  112    
         --> people still active have DSL (1952 subscribers have DSL max number) maybe we must improve fiber optic
         services we dont know exactly people why churn so what we gonna do next is grouping by churn internet service 
-        and 
-        """
-        """grouping by churn internet service , streaming tv and streaming movies to see which internet service needs to
+        and streaming tv and streaming movies to see which internet service needs to
         be improved"""
         self.group=(
               self.df.groupby(["Churn", "InternetService", "StreamingTV", "StreamingMovies"])
@@ -315,9 +313,7 @@ class CustomerChurnAnalysis :
         need visualisation for better analysis but we got the max count row:
         No              No  No internet service  No internet service   1402 -->these are people still active they don't
         use any internet service
-        No            No       No  No internet service  No internet service   1072
-        -->this gives additional info : the majority of customers are people still active with one line,no internet
-        service and no streaming  
+        No            No       No  No internet service  No internet service   1072 
         """
         #We need to see if these customers are senior or young
         self.group3= (
@@ -343,10 +339,42 @@ class CustomerChurnAnalysis :
         self.mcharge_q2=self.df.groupby("Churn")["MonthlyCharges"].quantile(0.75)
         print(f"\n Q1:{self.mcharges_q1} Q2:{self.mcharge_q2}")
         """
-        
+        Q1:Churn
+        No     25.10   25% of active customers pay less than 25.10$
+        Yes    56.25   75% of churn customers pay more than 56.25$
+        Q2:Churn
+        No     88.550   25% of active customers pay more than 88.550$
+        Yes    94.225   25% of churn customers pay more than 94.225$, 75% pay less
+        -> monthly charges influence 
         """
-
-
+        self.tcharges_q1=self.df.groupby("Churn")["TotalCharges"].quantile(0.25)
+        self.tcharges_q2=self.df.groupby("Churn")["TotalCharges"].quantile(0.75)
+        print(f"\n Q1:{self.tcharges_q1} Q2:{self.tcharges_q2}")
+        """
+        Q1:Churn
+        No     580.10
+        Yes    134.85
+        Q2:Churn
+        No     4265.0
+        Yes    2333.3
+        """
+        self.tenure_max=self.df.groupby("Churn")["tenure"].max()
+        print(f"\n max tenure: {self.tenure_max}")
+        """
+         max tenure: Churn
+            No     72
+            Yes    72
+        the max is 72 month for both loyals and churns
+            ->doesn't bring much of help
+        """
+        self.tenure_min=self.df.groupby("Churn")["tenure"].min()
+        print(f"\n min tenure: {self.tenure_min}")
+        """
+        min tenure: Churn
+        No     1
+        Yes    1
+        same thing the minimum is one month for both loyal and churn customers
+        """
 
 
 
