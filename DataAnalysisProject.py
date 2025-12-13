@@ -15,7 +15,7 @@ import pandas as pd
 
 
 #Build a class that will contain all methods to apply on dataset (load, analyze, plot )
-class DataAnalysisProject :
+class CustomerChurnAnalysis :
     def __init__(self,file_path):
         #constructor : initializes the class with the path to the dataset file
         #It stores the file's path to use it later in the class methods
@@ -24,7 +24,7 @@ class DataAnalysisProject :
         self.df = None
 
     #--------------------------------------------------
-    #1. Load Dataset
+    #1. Load Dataset : read the csv file containing the dataset for analysis and handle exceptions
     #--------------------------------------------------
     def load_data(self):
         """Load the data set from a csv file """
@@ -43,7 +43,7 @@ class DataAnalysisProject :
             print(f"Something went wrong while loading the file : {e} ")
 
     #------------------------------------------------
-    #2-Inspect DataSet
+    #2-Inspect DataSet : General information about dataset (numbers of rows , cols ,missing values and some statistic methods  )
     #------------------------------------------------
     def inspect_data(self):
         """Inspect the data set
@@ -199,26 +199,261 @@ class DataAnalysisProject :
 
 
         """ Data Groupment """
-        #Global churn distribution (numbers of clients who quit and who stayed )
-        print("\nGlobal Churn : ",self.df.groupby(['Churn']).sum())
 
-        #Count churn rate by internet service (counts the number of non-null values in this group )
-        print("\nChurn rate by internet service : ",self.df.groupby("InternetService")["Churn"].count())
 
-        #Churn rate by gender
-        print("\nChurn rate by gender : ",self.df.groupby("Gender")["Churn"].count())
+        #Global churn *************************************************
+        print("\nGlobal churn rate : ",self.df["Churn"].value_counts())
+        """
+        Churn
+        No     5153
+        Yes    1867
+        --> People who churn represent about 27% of customers but others are approximatively 73% 
+        --> meaningful churn issue cuz this 26% of people who leave service can affect negatively total revenue 
+        --> We still have time to handle this issue 
+        """
 
-        #Average monthly charges by churn
-        print("\nAverage monthly charges by churn : ",self.df.groupby("Churn")["MonthlyCharges"].mean())
+        #Internet service by churn rate *********************************
+        Internet_churn = self.df.groupby("InternetService")["Churn"].value_counts()
+        print("\nChurn rate by Internet Service :",Internet_churn)
+        """
+        InternetService  Churn
+        DSL              No       1952
+                         Yes       458
+        Fiber optic      No       1799
+                         Yes      1297
+        No               No       1402
+                         Yes       112
+        --> So in this case people  with fiber optic who churn more than DSL Maybe the problem 
+        is the internet service quality 
+        or something else : for that we gonna check MonthlyCharges based on each service 
+        """
 
-        #Average total charges by churn
-        print("\nAverage total charges by month :",self.df.groupby("Churn")["TotalCharges"].mean())
+        #Internet service usage ***********************************************
+        print("\nInternet service usage: ",self.df["InternetService"].value_counts())
+        """
+        InternetService
+        Fiber optic    3096
+        DSL            2410
+        No             1514
+        -->Fiber optic has the highest churn rate 42%, so even though it has the most customers
+         it also represents the largest number of churned users
+         --> Fiber optic is popular and hig churn risk 
+        """
 
-        #Monthly charges by contract type
-        print("\nMonthly charges by contract type : ",self.df.groupby("Contract")["MonthlyCharges"].sum())
 
-        #Total charges by internet service
-        print("\nTotal charges by internet service : ",self.df.groupby("InternetService")["TotalCharges"].sum())
+        #Analyse expenses with each internet service ***********************************************
+        print("\nMonthly charges by internet service : ",self.df.groupby("InternetService")["MonthlyCharges"].sum())
+        """DSL            140108.85
+           Fiber optic    283284.40
+           No              31917.05
 
-        #Multiple service Usage based on churn
-        print("\nService usage : ",self.df.groupby("Churn")["PhoneService","OnlineBackup","TechSupport","StreamingTV","StreamingMovies"].mean())
+        --> As we see Monthly charges of fiber optic are so high than other services so maybe the problem 
+        is highest monthly expenses
+        """
+
+        #High risk group **********************************************
+        High_risk = self.df[(self.df["Contract"] == "Month-to-month") & (self.df["TotalCharges"] > 80)]
+        print("\n\nHigh risk groups : " ,High_risk.groupby("Churn")["MonthlyCharges"].sum())
+        """Churn
+        No     126903.9
+        Yes    103487.3 
+        --> We can see that half of customers churn and their charges are so high barely equal to loyal customers
+        --> Big losses
+        """
+
+        #Contract type influence on churn rate *********************************************
+        print("\nChurn by contract type : ",self.df.groupby("Contract")["Churn"].value_counts())
+        """
+        Contract        Churn
+        Month-to-month  No       2216
+                        Yes      1653
+        One year        No       1302
+                        Yes       166
+        Two year        No       1635
+                        Yes        48
+        --> More contract duration long more customers are loyal to the agency and churn rate is so low 
+        """
+
+
+        #Total charges by Contract type **************************************************
+        print("\nTotal charges by contract : ",self.df.groupby("Contract")["TotalCharges"].sum())
+        """
+        Contract
+        Month-to-month    5304884.50
+        One year          4463244.25
+        Two year          6282100.90
+        -->longer contracts lead to higher revenues per customer
+        """
+
+        #Partners influence  ***************************************************************
+        print("\nPartner influence : ",self.df.groupby("Churn")["Partner"].value_counts())
+        """
+        Churn  Partner
+        No     Yes        2720
+               No         2433
+        Yes    No         1198
+               Yes         669
+        --> Customers with partners have more stable lifestyle --> less likely to churn --> often choose long time services
+        --> It' s like 39% of customers who churn does nkt have partners 
+        but who have partners are like approximatively 10% --> Big difference 
+        """
+
+        #Paper less billing influence *****************************************************
+        print("\nPaper less billing influence  : ",self.df.groupby("PaperlessBilling")["Churn"].value_counts())
+        """
+        PaperlessBilling  Churn
+        No                No       2388
+                          Yes       468
+        Yes               No       2765
+                          Yes      1399
+        -->Customers with paperless billing are more likely to churn 33.6% compared to those without paperless billing 16.4%
+        There is a strong relationship between PaperlessBilling and Churn 
+        """
+
+        #Payment method influence ****************************************************************
+        print("\nPayment method influence : ",self.df.groupby("PaymentMethod")["Churn"].value_counts())
+        """
+        PaymentMethod              Churn
+        Bank transfer (automatic)  No       1282
+                                   Yes       258
+        Credit card (automatic)    No       1288
+                                   Yes       232
+        Electronic check           No       1290
+                                   Yes      1070
+        Mailed check               No       1293
+                                   Yes       307
+        Bank transfer it's about 17% of customers who churn 
+        Credit card (automatic)   16%
+        Electronic check  about 47%
+        Mailed chack 20%
+        -->People with automatic payment --> lowest churn rate 
+        -->Electronic check --> very high churn rate (technical issues,delays or dissatisfaction or maybe looking for 
+        another service for switching )
+        -->For retention agencies should encourage Automatic payment
+        """
+
+        #Gender influence  *********************************************************************
+        print("\nGender influence ",self.df.groupby("gender")["Churn"].value_counts())
+        """ 
+        gender  Churn
+        Female  No       2538
+                Yes       939   -->27%
+        Male    No       2614
+                Yes       929   -->26.22%
+        -->So as we see gender does not influence churn rate
+        """
+
+
+        #Online security by churn rate *******************************************************
+        print("\nOnline security by churn rate  : ",self.df.groupby("OnlineSecurity")["Churn"].value_counts())
+        """
+        OnlineSecurity       Churn
+        No                   No       2034
+                             Yes      1460 --> 42%
+        No internet service  No       1402
+                             Yes       112
+        Yes                  No       1717 --> 15%
+                             Yes       295
+        -->Customers without online security have the highest churn
+        Nearly 42% churn rate, which is extremely high
+        This is a major risk group
+        """
+
+
+        #Online backup by churn rate ****************************************************
+        print("\nOnline backup by churn rate : ",self.df.groupby("OnlineBackup")["Churn"].value_counts())
+        """
+        OnlineBackup         Churn
+        No                   No       1851
+                             Yes      1232
+        No internet service  No       1402
+                             Yes       112
+        Yes                  No       1900 
+                             Yes       523  --> 21.5 %
+        -->Customers without online backup have a very high churn rate (40%)
+        -->Customers feel more secure and protected 
+        -->Online backup is a cloud-based service that automatically stores customer data remotely 
+        increasing service value and reducing churn by improving data security and customer attachment
+        (I's hard to look for another provider)
+        """
+
+        #Device protection by churn rate ****************************************************
+        print("\nDevice protection by churn rate : ",self.df.groupby("DeviceProtection")["Churn"].value_counts())
+        """
+        DeviceProtection     Churn
+        No                   No       1880
+                             Yes      1211
+        No internet service  No       1402
+                             Yes       112
+        Yes                  No       1871
+                             Yes       544
+        -->Customers without device protection churn the most Nearly 40% churn rate, which is very high
+        """
+        """
+        Conclusion : Among internet-related services, OnlineSecurity shows the strongest negative association with churn
+        followed by OnlineBackup and DeviceProtection, making it the most effective retention level
+        """
+
+        #TechSupport by churn rate *******************************************************
+        print("\nTechSupport by churn rate : ",self.df.groupby("TechSupport")["Churn"].value_counts())
+        """
+        TechSupport          Churn
+        No                   No       2023
+                             Yes      1445 -->40%
+        No internet service  No       1402
+                             Yes       112
+        Yes                  No       1728
+                             Yes       310 -->16%
+        -->Customers without TechSupport have the highest churn, while having 
+        TechSupport lowers churn dramatically, making it one of the most effective retention services
+        """
+
+        #Streaming TV and movies by churn rate ***********************************************************
+        print("\nStreaming TV and movies by churn rate : ",self.df.groupby(["StreamingTV","StreamingMovies"])["Churn"].value_counts())
+        """
+        StreamingTV          StreamingMovies      Churn
+        No                   No                   No       1318
+                                                  Yes       695
+                             Yes                  No        545
+                                                  Yes       246
+        No internet service  No internet service  No       1402
+                                                  Yes       112
+        Yes                  No                   No        521
+                                                  Yes       243
+                             Yes                  No       1367
+                                                  Yes       571
+        -->Weak retention factor : Subscribing to streaming services does not strongly prevent churn(weak influence)
+        """
+
+
+        #Churn rate by internet service and protection services
+        Service_cols = [
+            "InternetService",
+            "OnlineSecurity",
+            "OnlineBackup",
+            "DeviceProtection",
+            "TechSupport"
+        ]
+        print("\nChurn rate by internet service and protection services  : ",self.df.groupby(Service_cols)["Churn"].value_counts())
+        """
+        --> Customers with Fiber optic and no protection services -> highest churn
+        """
+
+
+        """
+        As we see : 
+        OnlineSecurity , TechSupport : High churn rate
+        OnlineBackup ,DevicProtection : Medium churn rate
+        StreamingTV , StreamingMovies : Low churn rate  
+         -->So agency should focus on high churn rate services and improve their quality 
+        """
+        """
+        We covered :
+        **Internet Service – high churn for Fiber Optic, likely due to cost or perceived quality
+        **Monthly Charges & Total Charges – high charges linked to higher churn, especially for month-to-month contracts
+        **Contract Type – longer contracts strongly reduce churn
+        **Partner status – customers with partners churn less
+        **Paperless Billing – associated with higher churn
+        **Payment Method – automatic payments reduce churn; electronic checks have the highest churn
+        **Gender – no significant effect
+        """
