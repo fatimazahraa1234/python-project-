@@ -511,7 +511,7 @@ class CustomerChurnAnalysis :
         plt.xlabel("Type of Internet Service", fontsize=12)
         plt.ylabel("Number of customers", fontsize=12)
         plt.xticks(rotation=0)
-        plt.legend(title='Churn', labels=['Yes', 'No'])
+        plt.legend(title='Churn', labels=['No', 'Yes'])
         plt.grid(axis='y', linestyle='--', alpha=0.5)
         plt.show()
 
