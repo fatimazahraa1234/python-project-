@@ -623,6 +623,40 @@ class CustomerChurnAnalysis :
         plt.show()
 
 
+        #scatter plot ################################################
+        #Customer Lifetime Value (LTV) Analysis
+
+        plt.figure(figsize=(10, 7))
+        # We split the data to assign different colors
+        churn_no = self.df[self.df['Churn'] == 'No']
+        churn_yes = self.df[self.df['Churn'] == 'Yes']
+        plt.scatter(
+            churn_no['tenure'],
+            churn_no['TotalCharges'],
+            color='#2ed573',
+            alpha=0.4,
+            s=30,  # Dot size
+            label='Loyal (Secured Revenue)'
+        )
+        plt.scatter(
+            churn_yes['tenure'],
+            churn_yes['TotalCharges'],
+            color='#ff4757',
+            alpha=0.6,
+            s=30,
+            label='Churned (Lost Revenue)'
+        )
+
+        plt.title("Customer Lifetime Value (LTV) Analysis", fontdict=font_dict)
+        plt.xlabel("Tenure (Months)", fontsize=12)
+        plt.ylabel("Total Revenue Generated ($)", fontsize=12)
+        plt.legend()
+        plt.grid(True, linestyle='--', alpha=0.5)
+
+        y_max = self.df['TotalCharges'].max()
+        plt.text(5, y_max * 0.8, "High Value Customers\n(Steep slopes = Expensive plans)", fontsize=10, color='gray')
+
+        plt.show()
 
 
 
