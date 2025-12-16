@@ -11,6 +11,7 @@
 """
 
 #import needed modules in this project
+import matplotlib.pyplot as plt
 import pandas as pd
 
 
@@ -170,11 +171,11 @@ class CustomerChurnAnalysis :
         print("\nCustomers who quit :",df_quit)
 
         #Loyal Customers  (tenure > 5years ) [Tenure = duration per month ]
-        df_long = self.df[self.df["Tenure"] >= 60]
+        df_long = self.df[self.df["tenure"] >= 60]
         print("\nCustomers who stay long :",df_long)
 
         #New customers (with less than 1 year )
-        df_less = self.df[self.df["Tenure"] <= 12 ]
+        df_less = self.df[self.df["tenure"] <= 12 ]
         print("\nCustomers who stay less than 12 months :",df_less)
 
         #High revenue customers
@@ -252,7 +253,7 @@ class CustomerChurnAnalysis :
         """
 
         #High risk group **********************************************
-        High_risk = self.df[(self.df["Contract"] == "Month-to-month") & (self.df["TotalCharges"] > 80)]
+        High_risk = self.df[(self.df["Contract"] == "Month-to-month") & (self.df["MonthlyCharges"] > 80)]
         print("\n\nHigh risk groups : " ,High_risk.groupby("Churn")["MonthlyCharges"].sum())
         """Churn
         No     126903.9
@@ -457,3 +458,179 @@ class CustomerChurnAnalysis :
         **Payment Method – automatic payments reduce churn; electronic checks have the highest churn
         **Gender – no significant effect
         """
+
+
+
+        # ------------------------------------------------------------------
+        # 6. Plotting Data
+        # ------------------------------------------------------------------
+
+
+    def plot_data(self):
+        """Visualise le Global Churn Rate"""
+        print("Génération du graphique...")  # Pour déboguer
+
+        # Calcul des comptes (si pas déjà fait avant)
+        self.global_churn = self.df["Churn"].value_counts()
+
+        plt.figure(figsize=(5, 4))
+
+        # Couleurs : Vert pour ceux qui restent, Rouge pour l'alerte
+        colors = ['#66b3ff', '#ff9999']
+        explode = (0, 0.1)
+
+        font_dict = {
+            'fontsize': 14,  # Font size
+            'fontweight': 'bold',  # Font weight
+            'color': 'black'}
+
+        plt.pie(
+                self.global_churn,
+                labels=self.global_churn.index,
+                autopct='%1.1f%%',
+                colors=colors,
+                explode=explode,
+                shadow=True,
+
+        )
+
+
+        plt.title("Global Churn Rate",fontdict=font_dict)
+        plt.axis('equal')
+        plt.legend()
+        plt.show()  # Ceci doit ouvrir la fenêtre
+
+        """Visualise le Churn par type de service Internet"""
+
+
+        # we cross InternetService and Churn
+        # unstack() allows us to get 'No' and 'Yes' as a column side by side
+        churn_by_internet = self.df.groupby(['InternetService', 'Churn']).size().unstack()
+        churn_by_internet.plot(kind='bar', figsize=(6, 4), color=['#66b3ff', '#ff9999'], width=0.8)
+        plt.title("Churn rate by internet service", fontdict=font_dict)
+        plt.xlabel("Type of Internet Service", fontsize=12)
+        plt.ylabel("Number of customers", fontsize=12)
+        plt.xticks(rotation=0)
+        plt.legend(title='Churn', labels=['Yes', 'No'])
+        plt.grid(axis='y', linestyle='--', alpha=0.5)
+        plt.show()
+
+
+        # Internet service usage *****************************************
+
+        counts = self.df["InternetService"].value_counts()
+        plt.figure(figsize=(6, 4))
+        colors = ['#ff9999', '#66b3ff', '#99ff99']
+        explode = [0.1 if v == counts.max() else 0 for v in counts]
+        plt.pie(
+            counts,
+            labels=counts.index,
+            autopct='%1.1f%%',
+            startangle=90,
+            colors=colors,
+            explode=explode,
+            shadow=True,
+            textprops={'fontsize': 14}
+        )
+
+        plt.title(" Destribution of Internet subscriptions ", fontdict=font_dict)
+        plt.axis('equal')
+        plt.show()
+
+
+        # Contract type influence on churn rate *********************************************
+
+        """Visualizes the impact of contract type on churn"""
+
+        contract_data = self.df.groupby(['Contract', 'Churn']).size().unstack()
+
+        contract_data.plot(kind='bar', figsize=(6, 5), color=['#66b3ff', '#ff9999'], width=0.8)
+
+        plt.title("Impact of Contract Duration on Churn", fontdict=font_dict)
+        plt.xlabel("Contract Type", fontsize=12)
+        plt.ylabel("Number of Customers", fontsize=12)
+        plt.xticks(rotation=0)  # Keep text horizontal for readability
+
+        plt.legend(title='Churn', labels=['No', 'Yes'])
+
+        plt.grid(axis='y', linestyle='--', alpha=0.5)
+        plt.show()
+
+        # Paper less billing influence *****************************************************
+
+        paperless_data = self.df.groupby(['PaperlessBilling', 'Churn']).size().unstack()
+        paperless_data.plot(kind='bar', figsize=(7, 6), color=['#66b3ff', '#ff9999'], width=0.8)
+
+        plt.title("Churn Rate by Billing Method (Paperless)", fontdict=font_dict)
+        plt.xlabel("Paperless Billing Active?", fontsize=12)
+        plt.ylabel("Number of Customers", fontsize=12)
+        plt.xticks(rotation=0)
+        plt.legend(title='Churn', labels=['Stayed (No)', 'Churned (Yes)'])
+        plt.grid(axis='y', linestyle='--', alpha=0.5)
+        plt.show()
+
+        # Payment method influence ***************************************************
+
+        churn_yes = self.df[self.df["Churn"] == "Yes"]
+        payment_churn_counts = churn_yes["PaymentMethod"].value_counts()
+
+        plt.figure(figsize=(10, 5))
+        plt.barh(payment_churn_counts.index, payment_churn_counts.values, color='salmon')
+
+        plt.title("Payment method influence", fontdict=font_dict)
+        plt.xlabel("Number of churn customers")
+        plt.ylabel("PaymentMethod")
+        plt.yticks(rotation=45)
+        plt.show()
+
+        # Online security by churn rate *******************************************
+
+        data_prep = self.df.groupby(['OnlineSecurity', 'Churn']).size().unstack()
+        data_prep.plot(kind='bar', figsize=(7, 6), color=['#4caf50', '#f44336'])
+
+        plt.title("Online security by churn rate", fontdict=font_dict)
+        plt.xlabel("OnlineSecurity", fontsize=12)
+        plt.ylabel("Number of customers ", fontsize=12)
+        plt.xticks(rotation=0)
+        plt.legend(title='Churn', labels=['No', 'Yes'])
+
+        plt.grid(axis='y', linestyle='--', alpha=0.7)
+        plt.show()
+
+        #LINE PLOT: Visualizes the evolution of the churn rate based on tenure.
+        #Shows that the risk is highest during the first year.
+        self.df['Churn_num'] = self.df['Churn'].map({'Yes': 1, 'No': 0})
+        churn_rate = self.df.groupby('tenure')['Churn_num'].mean() * 100
+
+        plt.figure(figsize=(9, 6))
+
+        plt.plot(
+            churn_rate.index,
+            churn_rate.values,
+            color='#800080',
+            linewidth=3,
+            marker='o',
+            markersize=5,
+            markerfacecolor='white'
+        )
+
+        plt.title("Churn Probability by Tenure", fontdict=font_dict)
+        plt.xlabel("Tenure (Months)", fontsize=12)
+        plt.ylabel("Churn Rate (%)", fontsize=12)
+        plt.grid(True, linestyle='--', alpha=0.6)
+        plt.axvspan(0, 12, color='red', alpha=0.1, label='Critical Zone (0-12 months)')
+        plt.legend()
+        plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
