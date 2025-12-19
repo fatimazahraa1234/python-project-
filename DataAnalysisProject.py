@@ -672,10 +672,6 @@ class CustomerChurnAnalysis :
     #============================================================
 
     def plot_data(self):
-        """Visualise le Global Churn Rate"""
-        print("Génération du graphique...")  # Pour déboguer
-
-        # Calcul des comptes (si pas déjà fait avant)
         self.global_churn = self.df["Churn"].value_counts()
 
         plt.figure(figsize=(5, 4))
@@ -858,6 +854,7 @@ class CustomerChurnAnalysis :
         plt.text(5, y_max * 0.8, "High Value Customers\n(Steep slopes = Expensive plans)", fontsize=10, color='gray')
 
         plt.show()
+
 
 
 
