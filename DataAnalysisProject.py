@@ -470,20 +470,6 @@ class CustomerChurnAnalysis :
         --> Big losses
         """
 
-        #Contract type influence on churn rate *********************************************
-        print("\nChurn by contract type : ",self.df.groupby("Contract")["Churn"].value_counts())
-        """
-        Contract        Churn
-        Month-to-month  No       2216
-                        Yes      1653
-        One year        No       1302
-                        Yes       166
-        Two year        No       1635
-                        Yes        48
-        --> More contract duration long more customers are loyal to the agency and churn rate is so low 
-        """
-
-
         #Total charges by Contract type **************************************************
         print("\nTotal charges by contract : ",self.df.groupby("Contract")["TotalCharges"].sum())
         """
@@ -670,8 +656,11 @@ class CustomerChurnAnalysis :
     #============================================================
     #6- Data Visualisation
     #============================================================
-
     def plot_data(self):
+        """Visualise le Global Churn Rate"""
+        print("Génération du graphique...")  # Pour déboguer
+
+        # Calcul des comptes (si pas déjà fait avant)
         self.global_churn = self.df["Churn"].value_counts()
 
         plt.figure(figsize=(5, 4))
@@ -854,7 +843,4 @@ class CustomerChurnAnalysis :
         plt.text(5, y_max * 0.8, "High Value Customers\n(Steep slopes = Expensive plans)", fontsize=10, color='gray')
 
         plt.show()
-
-
-
 
